@@ -16,11 +16,43 @@
 import XCTest
 
 final class SyncStreamTests: XCTestCase {
-    func testExample() throws {
-        // XCTest Documentation
-        // https://developer.apple.com/documentation/xctest
+    func testSyncStreamWithElements() {
+        let elements = [1, 2, 3]
+        var index = 0
+        let stream = SyncStream<Int> { continuation in
+            for element in elements {
+                continuation.yield(element)
+            }
+            continuation.finish()
+            XCTAssertTrue(continuation.isFinished)
+        }
 
-        // Defining Test Cases and Test Methods
-        // https://developer.apple.com/documentation/xctest/defining_test_cases_and_test_methods
+        for element in stream {
+            XCTAssertEqual(element, elements[index])
+            index += 1
+        }
+
+        XCTAssertEqual(index, elements.count)
+    }
+
+    func testSyncStreamFinishWithoutElements() {
+        let stream = SyncStream<Int> { continuation in
+            continuation.finish()
+        }
+
+        XCTAssertNil(stream.next())
+    }
+
+    func testSyncStreamUnfolding() {
+        let elements = [1, 2, 3]
+        var index = 0
+        let stream = SyncStream(unfolding: { index < elements.count ? elements[index] : nil })
+
+        for element in stream {
+            XCTAssertEqual(element, elements[index])
+            index += 1
+        }
+
+        XCTAssertEqual(index, elements.count)
     }
 }
