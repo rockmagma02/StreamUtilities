@@ -69,8 +69,8 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
     /// - Throws: `StopIteration` if the stream has finished.
     /// - Throws: `WrongStreamUse` if invalid interaction with the stream is detected.
     public func next() throws -> YieldT {
-        if case let .yielded(value) = finished {
-            throw StopIteration(value: value)
+        if case let .finished(value) = finished {
+            throw StopIteration<ReturnT>(value: value)
         }
         if started {
             throw WrongStreamUse(
@@ -112,6 +112,10 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
                 message: "The BidirectionalSyncStream has not started yet, " +
                     "Use next() to start the stream."
             )
+        }
+
+        if case let .finished(value) = finished {
+            throw StopIteration<ReturnT>(value: value)
         }
 
         continuation.sendValue = element
@@ -176,7 +180,12 @@ public extension BidirectionalSyncStream {
         ///     - element: The value to yield.
         ///
         /// - Returns: The value sent back.
+        @discardableResult
         public func yield(_ element: YieldT) -> SendT {
+            if finished {
+                fatalError("The stream has finished. Cannot yield any more.")
+            }
+
             state = .yielded(element)
             yieldSemaphore.signal()
             sendSemaphore.wait()
@@ -186,6 +195,11 @@ public extension BidirectionalSyncStream {
         /// Returns a value to the stream and finishes the stream.
         /// This is the last call in the stream.
         public func `return`(_ element: ReturnT) {
+            if finished {
+                fatalError("The stream has finished. Cannot return any more.")
+            }
+
+            finished = true
             state = .finished(element)
             yieldSemaphore.signal()
         }
@@ -196,6 +210,10 @@ public extension BidirectionalSyncStream {
         internal var yieldSemaphore = DispatchSemaphore(value: 0)
         internal var sendSemaphore = DispatchSemaphore(value: 0)
         internal var sendValue: SendT?
+
+        // MARK: Private
+
+        private var finished = false
     }
 }
 
@@ -213,6 +231,9 @@ public extension BidirectionalSyncStream {
                     continuation.yield(value)
                 }
             } catch {
+                if let value = (error as? StopIteration<ReturnT>)?.value {
+                    continuation.yield(value)
+                }
                 continuation.finish()
             }
         }
