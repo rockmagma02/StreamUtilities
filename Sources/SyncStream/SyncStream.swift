@@ -16,7 +16,7 @@ import Dispatch
 import Foundation
 
 /// An synchronous sequence generated from a closure that calls a continuation to produce new elements.
-public struct SyncStream<Element>: Sequence, IteratorProtocol {
+public class SyncStream<Element>: Sequence, IteratorProtocol {
     // MARK: Lifecycle
 
     /// Constructs an synchronous stream for an element type, using am element-producing closure.
@@ -46,7 +46,7 @@ public struct SyncStream<Element>: Sequence, IteratorProtocol {
     ///
     /// Parameters:
     ///   - produce: A closure that produces elements, returning `nil` when the stream is finished.
-    public init(unfolding produce: @escaping () -> Element?) {
+    public convenience init(unfolding produce: @escaping () -> Element?) {
         self.init(Element.self) { continuation in
             while let element = produce() {
                 continuation.yield(element)
@@ -58,6 +58,10 @@ public struct SyncStream<Element>: Sequence, IteratorProtocol {
     // MARK: Public
 
     public func next() -> Element? {
+        if finished {
+            return nil
+        }
+
         runFunctionSemaphore.signal()
         getValueSemaphore.wait()
         switch continuation.value {
@@ -65,6 +69,7 @@ public struct SyncStream<Element>: Sequence, IteratorProtocol {
             return element
 
         case .finish:
+            finished = true
             return nil
         }
     }
@@ -78,4 +83,5 @@ public struct SyncStream<Element>: Sequence, IteratorProtocol {
     private let getValueSemaphore: DispatchSemaphore
     private let runFunctionSemaphore: DispatchSemaphore
     private let continuation: SyncStream<Element>.Continuation
+    private var finished: Bool = false
 }
