@@ -55,6 +55,8 @@ public class SyncStream<Element>: Sequence, IteratorProtocol {
         }
     }
 
+    deinit {}
+
     // MARK: Public
 
     public func next() -> Element? {
@@ -83,5 +85,5 @@ public class SyncStream<Element>: Sequence, IteratorProtocol {
     private let getValueSemaphore: DispatchSemaphore
     private let runFunctionSemaphore: DispatchSemaphore
     private let continuation: SyncStream<Element>.Continuation
-    private var finished: Bool = false
+    private var finished = false
 }
