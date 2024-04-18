@@ -185,10 +185,7 @@ file_header:
 
 file_name:
   excluded:
-    - Type.swift
-    - Utils.swift
-    - AsyncResponseStream.swift
-    - Error.swift
+    - SequenceMethods.swift
 
 trailing_comma:
   mandatory_comma: true
