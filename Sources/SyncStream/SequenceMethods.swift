@@ -351,26 +351,6 @@ public extension SyncStream {
         }
     }
 
-    /// Returns a SyncStream that concatenates the results of calling the given throwing
-    /// transformation with each element of this sequence.
-    ///
-    /// Parameters:
-    ///     - transform: A throwing closure that accepts an element of this sequence as its
-    ///         argument and returns a sequence or collection.
-    ///
-    /// Returns:
-    ///     A SyncStream that concatenates the results of calling `transform` with each element
-    ///     of the sequence.
-    func flatMap<T>(_ transform: @escaping (Element) throws -> SyncStream<T>) rethrows -> [T] {
-        var result: [T] = []
-        for element in self {
-            for transformed in try transform(element) {
-                result.append(transformed)
-            }
-        }
-        return result
-    }
-
     /// Returns the result of combining the elements of the synchronous sequence using the given closure.
     ///
     /// Parameters:
