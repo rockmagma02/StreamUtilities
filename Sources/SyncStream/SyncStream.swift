@@ -23,6 +23,21 @@ public class SyncStream<Element>: Sequence, IteratorProtocol {
     ///
     /// Parameters:
     ///    - build: A closure that takes a continuation and uses it to produce elements.
+    ///
+    /// ## Example
+    /// ```swift
+    /// let stream = SyncStream<Int> { continuation in
+    ///      continuation.yield(1)
+    ///      continuation.yield(2)
+    ///      continuation.finish()
+    ///      continuation.yield(3) // This will be ignored
+    /// }
+    ///
+    /// for element in stream {
+    ///     print(element, terminator: " ")
+    /// }
+    /// // 1 2
+    /// ```
     public init(_: Element.Type = Element.self, _ build: @escaping (SyncStream<Element>.Continuation) -> Void) {
         let getValueSemaphore = DispatchSemaphore(value: 0)
         let runFuncitonSemaphore = DispatchSemaphore(value: 0)
@@ -46,6 +61,14 @@ public class SyncStream<Element>: Sequence, IteratorProtocol {
     ///
     /// Parameters:
     ///   - produce: A closure that produces elements, returning `nil` when the stream is finished.
+    ///
+    /// ## Example
+    /// ```swift
+    /// let stream = SyncStream<Int> {
+    ///     let value = Int.random(in: 1...10)
+    ///     if value == 5 { return nil }
+    /// }
+    /// ```
     public convenience init(unfolding produce: @escaping () -> Element?) {
         self.init(Element.self) { continuation in
             while let element = produce() {
