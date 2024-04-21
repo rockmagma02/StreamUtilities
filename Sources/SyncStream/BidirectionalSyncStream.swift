@@ -29,10 +29,35 @@ public struct WrongStreamUse: Error {
     public var message: String
 }
 
+// MARK: - Terminated
+
+/// An error to indicate that the stream has been terminated.
+/// i.e. an error has occurred in the stream.
+public struct Terminated: Error {
+    /// The file name where the error occurred.
+    public var fileName: String
+    /// The function name where the error occurred.
+    public var functionName: String
+    /// The line number where the error occurred.
+    public var lineNumber: Int
+    /// The column number where the error occurred.
+    public var columnNumber: Int
+    /// The error that occurred.
+    public var error: any Error
+
+    public var localizedDescription: String {
+        "Terminated in \(fileName) at \(functionName):\(lineNumber):\(columnNumber) "
+            + "with error: \(error.localizedDescription)"
+    }
+}
+
 // MARK: - NoneType
 
 /// A type to represent `None` in Python.
-public struct NoneType {}
+public struct NoneType {
+    /// Creates a new `NoneType`.
+    public init() {}
+}
 
 // MARK: - BidirectionalSyncStream
 
@@ -72,6 +97,9 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
         if case let .finished(value) = finished {
             throw StopIteration<ReturnT>(value: value)
         }
+        if case let .error(value) = finished {
+            throw value
+        }
         if started {
             throw WrongStreamUse(
                 message: "The BidirectionalSyncStream has already started, " +
@@ -89,6 +117,10 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
         case let .finished(value):
             finished = .finished(value)
             throw StopIteration(value: value)
+
+        case let .error(value):
+            finished = .error(value)
+            throw value
 
         default:
             throw WrongStreamUse(message: "yield or return must be called in the continuation closure")
@@ -117,6 +149,9 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
         if case let .finished(value) = finished {
             throw StopIteration<ReturnT>(value: value)
         }
+        if case let .error(value) = finished {
+            throw value
+        }
 
         continuation.sendValue = element
         continuation.state = .sended(element)
@@ -131,6 +166,10 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
             finished = .finished(value)
             throw StopIteration(value: value)
 
+        case let .error(value):
+            finished = .error(value)
+            throw value
+
         default:
             throw WrongStreamUse(message: "yield or return must be called in the continuation closure")
         }
@@ -144,6 +183,7 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
         case waitingForSend
         case sended(SendT)
         case finished(ReturnT)
+        case error(Terminated)
     }
 
     // MARK: Private
@@ -201,6 +241,36 @@ public extension BidirectionalSyncStream {
 
             finished = true
             state = .finished(element)
+            yieldSemaphore.signal()
+        }
+
+        /// Throws an error to the stream and finishes the stream.
+        /// This is the last call in the stream.
+        ///
+        /// - Parameters:
+        ///     - error: The error to throw.
+        public func `throw`(
+            error: any Error,
+            fileName: String = #file,
+            functionName: String = #function,
+            lineNumber: Int = #line,
+            columnNumber: Int = #column
+        ) {
+            if finished {
+                fatalError("The stream has finished. Cannot return any more.")
+            }
+
+            finished = true
+
+            let filename = (fileName as NSString).lastPathComponent
+            let terminated = Terminated(
+                fileName: fileName,
+                functionName: functionName,
+                lineNumber: lineNumber,
+                columnNumber: columnNumber,
+                error: error
+            )
+            state = .error(terminated)
             yieldSemaphore.signal()
         }
 

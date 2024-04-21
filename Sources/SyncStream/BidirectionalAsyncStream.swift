@@ -54,6 +54,9 @@ public class BidirectionalAsyncStream<YieldT, SendT, ReturnT> {
         if case let .finished(value) = finished {
             throw StopIteration<ReturnT>(value: value)
         }
+        if case let .error(value) = finished {
+            throw value
+        }
         if started {
             throw WrongStreamUse(
                 message: "The BidirectionalSyncStream has already started, " +
@@ -71,6 +74,10 @@ public class BidirectionalAsyncStream<YieldT, SendT, ReturnT> {
         case let .finished(value):
             finished = .finished(value)
             throw StopIteration(value: value)
+
+        case let .error(value):
+            finished = .error(value)
+            throw value
 
         default:
             throw WrongStreamUse(message: "yield or return must be called in the continuation closure")
@@ -99,6 +106,9 @@ public class BidirectionalAsyncStream<YieldT, SendT, ReturnT> {
         if case let .finished(value) = finished {
             throw StopIteration<ReturnT>(value: value)
         }
+        if case let .error(value) = finished {
+            throw value
+        }
 
         continuation.sendValue = element
         continuation.state = .sended(element)
@@ -113,6 +123,10 @@ public class BidirectionalAsyncStream<YieldT, SendT, ReturnT> {
             finished = .finished(value)
             throw StopIteration(value: value)
 
+        case let .error(value):
+            finished = .error(value)
+            throw value
+
         default:
             throw WrongStreamUse(message: "yield or return must be called in the continuation closure")
         }
@@ -126,6 +140,7 @@ public class BidirectionalAsyncStream<YieldT, SendT, ReturnT> {
         case waitingForSend
         case sended(SendT)
         case finished(ReturnT)
+        case error(Terminated)
     }
 
     // MARK: Private
@@ -182,6 +197,36 @@ public extension BidirectionalAsyncStream {
 
             finished = true
             state = .finished(element)
+            await yieldSemaphore.signal()
+        }
+
+        /// Throws an error to the stream and finishes the stream.
+        /// This is the last call in the stream.
+        ///
+        /// - Parameters:
+        ///     - error: The error to throw.
+        public func `throw`(
+            error: any Error,
+            fileName: String = #file,
+            functionName: String = #function,
+            lineNumber: Int = #line,
+            columnNumber: Int = #column
+        ) async {
+            if finished {
+                fatalError("The stream has finished. Cannot return any more.")
+            }
+
+            finished = true
+
+            let filename = (fileName as NSString).lastPathComponent
+            let terminated = Terminated(
+                fileName: fileName,
+                functionName: functionName,
+                lineNumber: lineNumber,
+                columnNumber: columnNumber,
+                error: error
+            )
+            state = .error(terminated)
             await yieldSemaphore.signal()
         }
 
