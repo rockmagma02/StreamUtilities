@@ -247,7 +247,10 @@ public extension BidirectionalSyncStream {
         _: YieldT.Type = YieldT.self,
         _: SendT.Type = SendT.self,
         _: ReturnT.Type = ReturnT.self
-    ) -> (stream: BidirectionalSyncStream<YieldT, SendT, ReturnT>, continuation: BidirectionalSyncStream<YieldT, SendT, ReturnT>.Continuation) {
+    ) -> (
+        stream: BidirectionalSyncStream<YieldT, SendT, ReturnT>,
+        continuation: BidirectionalSyncStream<YieldT, SendT, ReturnT>.Continuation
+    ) {
         let stream = BidirectionalSyncStream { _ in }
         let continuation = stream.continuation
         return (stream, continuation)
