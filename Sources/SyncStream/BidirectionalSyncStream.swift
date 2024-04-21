@@ -239,6 +239,10 @@ public extension BidirectionalSyncStream {
         }
     }
 
+    /// Constructs an Bidrectional synchronous stream from the Element Type
+    ///
+    /// - Returns: A tuple containing the stream and its continuation. The continuation
+    ///     should be passed to the producer while the stream should be passed to the consumer.
     static func makeStream(
         _: YieldT.Type = YieldT.self,
         _: SendT.Type = SendT.self,
