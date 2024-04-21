@@ -15,30 +15,12 @@
 import Dispatch
 import Foundation
 
-// MARK: - StopIteration
-
-/// A special error to indicate the end of the stream.
-public struct StopIteration<ReturnT>: Error {
-    public var value: ReturnT
-}
-
-// MARK: - WrongStreamUse
-
-/// An error to indicate an invalid interaction with the stream.
-public struct WrongStreamUse: Error {
-    public var message: String
-}
-
-// MARK: - NoneType
-
-/// A type to represent `None` in Python.
-public struct NoneType {}
-
-// MARK: - BidirectionalSyncStream
+// MARK: - BidirectionalAsyncStream
 
 /// A mechanism inspired by Python's generator to allow for bidirectional communication between two
 /// parties. One party can yield a value and the other party can send a value back.
-public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
+@available(macOS 10.15, *)
+public class BidirectionalAsyncStream<YieldT, SendT, ReturnT> {
     // MARK: Lifecycle
 
     /// Creates a new `BidirectionalSyncStream`.
@@ -47,12 +29,12 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
     ///     - YieldT: The type of the value to yield.
     ///     - SendT: The type of the value to send.
     ///     - ReturnT: The type of the value to return.
-    ///     - build: A closure that takes a `Continuation` and returns `Void`.
+    ///     - build: A async closure that takes a `Continuation` and returns `Void`.
     public init(
         _: YieldT.Type = YieldT.self,
         _: SendT.Type = SendT.self,
         _: ReturnT.Type = ReturnT.self,
-        _ build: @escaping (Continuation) -> Void
+        _ build: @escaping (Continuation) async -> Void
     ) {
         self.build = build
         continuation = Continuation()
@@ -68,7 +50,7 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
     /// - Returns: The next value in the stream.
     /// - Throws: `StopIteration` if the stream has finished.
     /// - Throws: `WrongStreamUse` if invalid interaction with the stream is detected.
-    public func next() throws -> YieldT {
+    public func next() async throws -> YieldT {
         if case let .finished(value) = finished {
             throw StopIteration<ReturnT>(value: value)
         }
@@ -78,9 +60,9 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
                     "Use send() instead of next() to continue the stream."
             )
         }
-        start()
+        await start()
 
-        continuation.yieldSemaphore.wait()
+        await continuation.yieldSemaphore.wait()
         switch continuation.state {
         case let .yielded(value):
             continuation.state = .waitingForSend
@@ -106,7 +88,7 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
     /// - Throws: `WrongStreamUse` if invalid interaction with the stream is detected.
     ///
     /// - Note: This method can only be called after calling `next()`.
-    public func send(_ element: SendT) throws -> YieldT {
+    public func send(_ element: SendT) async throws -> YieldT {
         guard started else {
             throw WrongStreamUse(
                 message: "The BidirectionalSyncStream has not started yet, " +
@@ -120,8 +102,8 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
 
         continuation.sendValue = element
         continuation.state = .sended(element)
-        continuation.sendSemaphore.signal()
-        continuation.yieldSemaphore.wait()
+        await continuation.sendSemaphore.signal()
+        await continuation.yieldSemaphore.wait()
         switch continuation.state {
         case let .yielded(value):
             continuation.state = .waitingForSend
@@ -150,22 +132,21 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
 
     private var started = false
     private var finished: State = .idle
-    private var build: (Continuation) -> Void
+    private var build: (Continuation) async -> Void
     private var continuation: Continuation
-    private var queue = DispatchQueue(label: "com.BidirectionalSyncStream.\(UUID().uuidString)")
+    private var queue = DispatchQueue(label: "com.BidirectionalAsyncStream.\(UUID().uuidString)")
 
-    private func start() {
+    private func start() async {
         started = true
-        queue.async {
-            self.build(self.continuation)
-        }
+        Task { await build(continuation) }
     }
 }
 
-// MARK: BidirectionalSyncStream.Continuation
+// MARK: BidirectionalAsyncStream.Continuation
 
-public extension BidirectionalSyncStream {
-    /// A continuation of the `BidirectionalSyncStream`.
+@available(macOS 10.15, *)
+public extension BidirectionalAsyncStream {
+    /// A continuation of the `BidirectionalAsyncStream`.
     /// It is used to communicate between the two parties.
     class Continuation {
         // MARK: Lifecycle
@@ -181,34 +162,34 @@ public extension BidirectionalSyncStream {
         ///
         /// - Returns: The value sent back.
         @discardableResult
-        public func yield(_ element: YieldT) -> SendT {
+        public func yield(_ element: YieldT) async -> SendT {
             if finished {
                 fatalError("The stream has finished. Cannot yield any more.")
             }
 
             state = .yielded(element)
-            yieldSemaphore.signal()
-            sendSemaphore.wait()
+            await yieldSemaphore.signal()
+            await sendSemaphore.wait()
             return sendValue!
         }
 
         /// Returns a value to the stream and finishes the stream.
         /// This is the last call in the stream.
-        public func `return`(_ element: ReturnT) {
+        public func `return`(_ element: ReturnT) async {
             if finished {
                 fatalError("The stream has finished. Cannot return any more.")
             }
 
             finished = true
             state = .finished(element)
-            yieldSemaphore.signal()
+            await yieldSemaphore.signal()
         }
 
         // MARK: Internal
 
         internal var state: State = .idle
-        internal var yieldSemaphore = DispatchSemaphore(value: 0)
-        internal var sendSemaphore = DispatchSemaphore(value: 0)
+        internal var yieldSemaphore = AsyncSemphore(value: 0)
+        internal var sendSemaphore = AsyncSemphore(value: 0)
         internal var sendValue: SendT?
 
         // MARK: Private
@@ -217,29 +198,32 @@ public extension BidirectionalSyncStream {
     }
 }
 
-public extension BidirectionalSyncStream {
+@available(macOS 10.15, *)
+public extension BidirectionalAsyncStream {
     /// Converts the stream to a `SyncStream`.
     ///
     /// Only works when the `SendT` type is `NoneType`, and the `YieldT` type is the same as the `ReturnT` type.
-    func toSyncStream() -> SyncStream<YieldT> where SendT.Type == NoneType.Type, YieldT.Type == ReturnT.Type {
-        SyncStream<YieldT> { continuation in
-            do {
-                let value = try self.next()
-                continuation.yield(value)
-                while true {
-                    let value = try self.send(NoneType())
+    func toAsyncStream() async -> AsyncStream<YieldT> where SendT.Type == NoneType.Type, YieldT.Type == ReturnT.Type {
+        AsyncStream<YieldT> { continuation in
+            Task {
+                do {
+                    let value = try await self.next()
                     continuation.yield(value)
+                    while true {
+                        let value = try await self.send(NoneType())
+                        continuation.yield(value)
+                    }
+                } catch {
+                    if let value = (error as? StopIteration<ReturnT>)?.value {
+                        continuation.yield(value)
+                    }
+                    continuation.finish()
                 }
-            } catch {
-                if let value = (error as? StopIteration<ReturnT>)?.value {
-                    continuation.yield(value)
-                }
-                continuation.finish()
             }
         }
     }
 
-    /// Constructs an Bidrectional synchronous stream from the Element Type
+    /// Constructs an Bidrectional asynchronous stream from the Element Type
     ///
     /// - Returns: A tuple containing the stream and its continuation. The continuation
     ///     should be passed to the producer while the stream should be passed to the consumer.
@@ -248,10 +232,10 @@ public extension BidirectionalSyncStream {
         _: SendT.Type = SendT.self,
         _: ReturnT.Type = ReturnT.self
     ) -> (
-        stream: BidirectionalSyncStream<YieldT, SendT, ReturnT>,
-        continuation: BidirectionalSyncStream<YieldT, SendT, ReturnT>.Continuation
+        stream: BidirectionalAsyncStream<YieldT, SendT, ReturnT>,
+        continuation: BidirectionalAsyncStream<YieldT, SendT, ReturnT>.Continuation
     ) {
-        let stream = BidirectionalSyncStream { _ in }
+        let stream = BidirectionalAsyncStream<YieldT, SendT, ReturnT> { _ in }
         let continuation = stream.continuation
         return (stream, continuation)
     }
