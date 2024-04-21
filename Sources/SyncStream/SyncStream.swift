@@ -82,6 +82,19 @@ public class SyncStream<Element>: Sequence, IteratorProtocol {
 
     // MARK: Public
 
+    /// Constructs an synchronous stream from the Element Type
+    /// - Parameter type: The Element Type
+    ///
+    /// - Returns: A tuple containing the stream and its continuation. The continuation
+    ///     should be passed to the producer while the stream should be passed to the consumer.
+    public static func makeStream(
+        of _: Element.Type = Element.self
+    ) -> (stream: SyncStream<Element>, continuation: SyncStream<Element>.Continuation) {
+        let stream = SyncStream<Element> { _ in }
+        let continuation = stream.continuation
+        return (stream, continuation)
+    }
+
     public func next() -> Element? {
         if finished {
             return nil
