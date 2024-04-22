@@ -262,15 +262,19 @@ public extension BidirectionalSyncStream {
 
             finished = true
 
-            let filename = (fileName as NSString).lastPathComponent
-            let terminated = Terminated(
-                fileName: fileName,
-                functionName: functionName,
-                lineNumber: lineNumber,
-                columnNumber: columnNumber,
-                error: error
-            )
-            state = .error(terminated)
+            if let error = (error as? Terminated) {
+                state = .error(error)
+            } else {
+                let filename = (fileName as NSString).lastPathComponent
+                let terminated = Terminated(
+                    fileName: fileName,
+                    functionName: functionName,
+                    lineNumber: lineNumber,
+                    columnNumber: columnNumber,
+                    error: error
+                )
+                state = .error(terminated)
+            }
             yieldSemaphore.signal()
         }
 
