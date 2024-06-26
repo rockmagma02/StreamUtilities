@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Please do your best to make the issue as easy to act on as possible, and only submit here if there is clearly a problem with SyncStream (ask in [Discussions](https://github.com/rockmagma02/SyncStream/discussions) first if unsure).
+        Please do your best to make the issue as easy to act on as possible, and only submit here if there is clearly a problem with StreamUtilities (ask in [Discussions](https://github.com/rockmagma02/StreamUtilities/discussions) first if unsure).
 
   - type: checkboxes
     id: steps
@@ -14,17 +14,17 @@ body:
       label: Required prerequisites
       description: Make sure you've completed the following steps before submitting your issue -- thank you!
       options:
-        - label: I have read the documentation <http://syncstream.ruiyangsun.com/documentation/syncstream/>.
+        - label: I have read the documentation <http://StreamUtilities.ruiyangsun.com/documentation/StreamUtilities/>.
           required: true
-        - label: I have searched the [Issue Tracker](https://github.com/rockmagma02/SyncStream/issues) and [Discussions](https://github.com/rockmagma02/SyncStream/discussions) that this hasn't already been reported. (+1 or comment there if it has.)
+        - label: I have searched the [Issue Tracker](https://github.com/rockmagma02/StreamUtilities/issues) and [Discussions](https://github.com/rockmagma02/StreamUtilities/discussions) that this hasn't already been reported. (+1 or comment there if it has.)
           required: true
-        - label: Consider asking first in a [Discussion](https://github.com/rockmagma02/SyncStream/discussions).
+        - label: Consider asking first in a [Discussion](https://github.com/rockmagma02/StreamUtilities/discussions).
           required: false
 
   - type: input
     id: version
     attributes:
-      label: What version of SyncStream are you using?
+      label: What version of StreamUtilities are you using?
       placeholder: E.g., 1.0.0
     validations:
       required: true
@@ -35,7 +35,7 @@ body:
       label: Problem description
       description: >-
         Provide a short description, state the expected behavior and what actually happens. Include
-        relevant information like what version of SyncStream you are using, what system you are on,
+        relevant information like what version of StreamUtilities you are using, what system you are on,
         and any useful commands / output.
     validations:
       required: true

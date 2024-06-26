@@ -1,4 +1,4 @@
-name: Check
+name: Build and Test
 
 on:
   push:
@@ -32,4 +32,4 @@ jobs:
       - name: pre-commit
         run: make pre-commit
       - name: addlicense
-        run: make addlicense-directly
+        run: make addlicense

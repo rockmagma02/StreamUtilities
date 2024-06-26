@@ -1,5 +1,5 @@
 print-%: ; @echo $* = $($*)
-PROJECT_NAME   = SyncStream
+PROJECT_NAME   = StreamUtilities
 COPYRIGHT      = "Ruiyang Sun. All Rights Reserved."
 SOURCE_FOLDERS = Sources Tests
 SHELL          = /bin/bash
@@ -101,7 +101,7 @@ swiftformat-install:
 	fi
 
 addlicense-install: go-install
-	command -v $(HOME)/go/bin/addlicense || go get -u github.com/google/addlicense
+	command -v $(HOME)/go/bin/addlicense || go install github.com/google/addlicense@latest
 
 # Tools
 pre-commit: pre-commit-install
@@ -117,11 +117,5 @@ swiftformat: swiftformat-install
 	swiftformat . --verbose
 
 addlicense: addlicense-install
-	$(HOME)/go/bin/addlicense -c $(COPYRIGHT) -l apache -y 2024-$(shell date +"%Y") $(SOURCE_FOLDERS)
-	$(HOME)/go/bin/addlicense -c $(COPYRIGHT) -l apache -y 2024-$(shell date +"%Y") -c $(SOURCE_FOLDERS)
-
-addlicense-directly:
-	brew install go
-	command -v $(HOME)/go/bin/addlicense || go install github.com/google/addlicense@latest
 	$(HOME)/go/bin/addlicense -c $(COPYRIGHT) -l apache -y 2024-$(shell date +"%Y") $(SOURCE_FOLDERS)
 	$(HOME)/go/bin/addlicense -c $(COPYRIGHT) -l apache -y 2024-$(shell date +"%Y") -c $(SOURCE_FOLDERS)
