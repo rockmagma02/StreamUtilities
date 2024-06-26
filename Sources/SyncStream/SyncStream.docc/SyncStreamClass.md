@@ -2,9 +2,11 @@
 
 ## Overview
 
-[SyncStream](syncstream/syncstream) is inspired by Swift's [`AsyncStream`](https://developer.apple.com/documentation/swift/asyncstream) and offers a convenient way to generate a sequence using a closure, without the need to implement the `Sequence` protocol.
+[`AsyncStream`](https://developer.apple.com/documentation/swift/asyncstream) offers a convenient method to create a sequence from a closure that invokes a continuation to generate elements. However, in certain cases, you may need to produce a sequence synchronously using a closure. To address this need, we introduce [`SyncStream`](syncstream/syncstream), which shares the same API as `AsyncStream` but operates synchronously.
 
-Just like the [`AsyncStream`](https://developer.apple.com/documentation/swift/asyncstream) , the [SyncStream](syncstream/syncstream) also utilizes a class called [Continuation](syncstream/syncstream/continuation) to manage the production progress. The [Continuation](syncstream/syncstream/continuation) offers two main methods, [`yield(_:)`](syncstream/syncstream/continuation/yield(_:)) and [`finish`](syncstream/syncstream/continuation/finish()), similar to those in the [`AsyncStream`](https://developer.apple.com/documentation/swift/asyncstream), but operates synchronously. If you are familiar with Python, you can consider the  [SyncStream](syncstream/syncstream) as a generator.
+In detail, the most common way to initialize a `SyncStream` is providing a closure that takes a `Continuation` argument. The `Continuation` class provides two key methods, `yield(_:)` and `finish()`, to manage the element production procedure.
+
+Because of the synchronous feature, the closure will not execute until you start iterating over the stream.
 
 ```swift
 let stream = SyncStream<Int> { continuation in
@@ -15,7 +17,7 @@ let stream = SyncStream<Int> { continuation in
 }
 
 for value in stream {
-print(value, terminator: " ")
+    print(value, terminator: " ")
 }
 // 0 1 2 3 4 5 6 7 8 9
 ```
@@ -48,13 +50,14 @@ print(value, terminator: " ")
 
 - ``dropFirst(_:)``
 - ``drop(while:)``
-- ``filter(_:)``
+- ``filter(_:)-6h5ix``
+- ``filter(_:)-7wb05``
 
 ### Transforming a Sequence
 
-- ``map(_:)-hk46``
-- ``map(_:)-5vrbe``
+- ``map(_:)``
 - ``compactMap(_:)``
-- ``flatMap(_:)``
+- ``flatMap(_:)-uifn``
+- ``flatMap(_:)-5btn7``
 - ``reduce(_:_:)``
 - ``reduce(into:_:)``
