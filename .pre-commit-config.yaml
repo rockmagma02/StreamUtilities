@@ -24,10 +24,6 @@ repos:
     rev: v2.2.6
     hooks:
       - id: codespell
-        exclude: |
-          (?x)(
-            ^docs/source/spelling_wordlist.txt$
-          )
         args:
           - -L
           - "inout"
