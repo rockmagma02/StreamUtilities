@@ -83,7 +83,7 @@ public class SyncStream<Element>: Sequence, IteratorProtocol {
     // MARK: Public
 
     /// Constructs an synchronous stream from the Element Type
-    /// - Parameter type: The Element Type
+    /// - Parameter of: The Element Type
     ///
     /// - Returns: A tuple containing the stream and its continuation. The continuation
     ///     should be passed to the producer while the stream should be passed to the consumer.

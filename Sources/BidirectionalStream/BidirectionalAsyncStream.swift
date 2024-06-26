@@ -25,10 +25,10 @@ public class BidirectionalAsyncStream<YieldT, SendT, ReturnT> {
     /// Creates a new `BidirectionalSyncStream`.
     ///
     /// - Parameters:
-    ///     - YieldT: The type of the value to yield.
-    ///     - SendT: The type of the value to send.
-    ///     - ReturnT: The type of the value to return.
-    ///     - build: A async closure that takes a `Continuation` and returns `Void`.
+    ///     - The type of the value to yield.
+    ///     - The type of the value to send.
+    ///     - The type of the value to return.
+    ///     - A async closure that takes a `Continuation` and returns `Void`.
     public init(
         _: YieldT.Type = YieldT.self,
         _: SendT.Type = SendT.self,
@@ -203,6 +203,10 @@ public extension BidirectionalAsyncStream {
         ///
         /// - Parameters:
         ///     - error: The error to throw.
+        ///     - fileName: The name of the file where the error was thrown.
+        ///     - functionName: The name of the function where the error was thrown.
+        ///     - lineNumber: The line number where the error was thrown.
+        ///     - columnNumber: The column number where the error was thrown.
         public func `throw`(
             error: any Error,
             fileName: String = #file,

@@ -18,7 +18,7 @@ import SyncStream
 
 // MARK: - StopIteration
 
-/// A special error to indicate the end of the stream.
+/// A special error containing the return value to indicate the end of the stream.
 public struct StopIteration<ReturnT>: Error {
     public var value: ReturnT
 }
@@ -33,7 +33,7 @@ public struct WrongStreamUse: Error {
 // MARK: - Terminated
 
 /// An error to indicate that the stream has been terminated.
-/// i.e. an error has occurred in the stream.
+/// i.e. an error has occurred in the stream's inside closure.
 public struct Terminated: Error {
     /// The file name where the error occurred.
     public var fileName: String
@@ -70,10 +70,10 @@ public class BidirectionalSyncStream<YieldT, SendT, ReturnT> {
     /// Creates a new `BidirectionalSyncStream`.
     ///
     /// - Parameters:
-    ///     - YieldT: The type of the value to yield.
-    ///     - SendT: The type of the value to send.
-    ///     - ReturnT: The type of the value to return.
-    ///     - build: A closure that takes a `Continuation` and returns `Void`.
+    ///     - The type of the value to yield.
+    ///     - The type of the value to send.
+    ///     - The type of the value to return.
+    ///     - A closure that takes a `Continuation` and returns `Void`.
     public init(
         _: YieldT.Type = YieldT.self,
         _: SendT.Type = SendT.self,
@@ -250,6 +250,10 @@ public extension BidirectionalSyncStream {
         ///
         /// - Parameters:
         ///     - error: The error to throw.
+        ///     - fileName: The name of the file where the error was thrown.
+        ///     - functionName: The name of the function where the error was thrown.
+        ///     - lineNumber: The line number where the error was thrown.
+        ///     - columnNumber: The column number where the error was thrown.
         public func `throw`(
             error: any Error,
             fileName: String = #file,
