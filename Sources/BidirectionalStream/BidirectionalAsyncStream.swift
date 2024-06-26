@@ -19,7 +19,6 @@ import Foundation
 
 /// A mechanism inspired by Python's generator to allow for bidirectional communication between two
 /// parties. One party can yield a value and the other party can send a value back.
-@available(macOS 10.15, *)
 public class BidirectionalAsyncStream<YieldT, SendT, ReturnT> {
     // MARK: Lifecycle
 
@@ -159,7 +158,6 @@ public class BidirectionalAsyncStream<YieldT, SendT, ReturnT> {
 
 // MARK: BidirectionalAsyncStream.Continuation
 
-@available(macOS 10.15, *)
 public extension BidirectionalAsyncStream {
     /// A continuation of the `BidirectionalAsyncStream`.
     /// It is used to communicate between the two parties.
@@ -221,7 +219,7 @@ public extension BidirectionalAsyncStream {
             if let error = (error as? Terminated) {
                 state = .error(error)
             } else {
-                let filename = (fileName as NSString).lastPathComponent
+                let fileName = (fileName as NSString).lastPathComponent
                 let terminated = Terminated(
                     fileName: fileName,
                     functionName: functionName,
@@ -237,8 +235,8 @@ public extension BidirectionalAsyncStream {
         // MARK: Internal
 
         internal var state: State = .idle
-        internal var yieldSemaphore = AsyncSemphore(value: 0)
-        internal var sendSemaphore = AsyncSemphore(value: 0)
+        internal var yieldSemaphore = AsyncSemaphore(value: 0)
+        internal var sendSemaphore = AsyncSemaphore(value: 0)
         internal var sendValue: SendT?
 
         // MARK: Private
@@ -247,7 +245,6 @@ public extension BidirectionalAsyncStream {
     }
 }
 
-@available(macOS 10.15, *)
 public extension BidirectionalAsyncStream {
     /// Converts the stream to a `SyncStream`.
     ///
@@ -272,7 +269,7 @@ public extension BidirectionalAsyncStream {
         }
     }
 
-    /// Constructs an Bidrectional asynchronous stream from the Element Type
+    /// Constructs an Bidirectional asynchronous stream from the Element Type
     ///
     /// - Returns: A tuple containing the stream and its continuation. The continuation
     ///     should be passed to the producer while the stream should be passed to the consumer.

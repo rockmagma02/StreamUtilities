@@ -16,8 +16,8 @@ let package = Package(
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "SyncStream",
-            targets: ["SyncStream"]
+            name: "StreamUtils",
+            targets: ["SyncStream", "BidirectionalStream"]
         ),
     ],
     dependencies: [
@@ -28,9 +28,17 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "SyncStream"),
+        .target(
+            name: "BidirectionalStream",
+            dependencies: ["SyncStream"]
+        ),
         .testTarget(
             name: "SyncStreamTests",
             dependencies: ["SyncStream"]
+        ),
+        .testTarget(
+            name: "BidirectionalStreamTests",
+            dependencies: ["BidirectionalStream"]
         ),
     ]
 )

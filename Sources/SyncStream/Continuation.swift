@@ -20,9 +20,9 @@ public extension SyncStream {
     class Continuation {
         // MARK: Lifecycle
 
-        internal init(getValueSemaphore: DispatchSemaphore, runFuncitonSemaphore: DispatchSemaphore) {
+        internal init(getValueSemaphore: DispatchSemaphore, runFunctionSemaphore: DispatchSemaphore) {
             self.getValueSemaphore = getValueSemaphore
-            runFunctionSemaphore = runFuncitonSemaphore
+            self.runFunctionSemaphore = runFunctionSemaphore
         }
 
         deinit {}
@@ -30,15 +30,15 @@ public extension SyncStream {
         // MARK: Public
 
         /// If the stream is finished
-        public var isFinished: Bool { finished }
+        public internal(set) var isFinished = false
 
         /// Yields an element to the stream.
         public func yield(_ element: Element) {
             queue.sync {
-                if !self.finished {
-                    self.value = .element(element)
-                    self.getValueSemaphore.signal()
-                    self.runFunctionSemaphore.wait()
+                if !isFinished {
+                    value = .element(element)
+                    getValueSemaphore.signal()
+                    runFunctionSemaphore.wait()
                 }
             }
         }
@@ -46,9 +46,9 @@ public extension SyncStream {
         /// Finishes the stream.
         public func finish() {
             queue.sync {
-                self.value = .finish
-                self.finished = true
-                self.getValueSemaphore.signal()
+                value = .finish
+                getValueSemaphore.signal()
+                isFinished = true
             }
         }
 
@@ -60,7 +60,6 @@ public extension SyncStream {
 
         private var getValueSemaphore: DispatchSemaphore
         private var runFunctionSemaphore: DispatchSemaphore
-        private var finished = false
         private let queue = DispatchQueue(label: "com.SyncStream.Continuation.\(UUID().uuidString)")
     }
 

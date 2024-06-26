@@ -14,6 +14,7 @@
 
 import Dispatch
 import Foundation
+import SyncStream
 
 // MARK: - StopIteration
 
@@ -265,7 +266,7 @@ public extension BidirectionalSyncStream {
             if let error = (error as? Terminated) {
                 state = .error(error)
             } else {
-                let filename = (fileName as NSString).lastPathComponent
+                let fileName = (fileName as NSString).lastPathComponent
                 let terminated = Terminated(
                     fileName: fileName,
                     functionName: functionName,
@@ -313,7 +314,7 @@ public extension BidirectionalSyncStream {
         }
     }
 
-    /// Constructs an Bidrectional synchronous stream from the Element Type
+    /// Constructs an Bidirectional synchronous stream from the Element Type
     ///
     /// - Returns: A tuple containing the stream and its continuation. The continuation
     ///     should be passed to the producer while the stream should be passed to the consumer.

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@testable import SyncStream
+@testable import BidirectionalStream
 import XCTest
 
 final class BidirectionalAsyncStreamTests: XCTestCase {
@@ -73,7 +73,7 @@ final class BidirectionalAsyncStreamTests: XCTestCase {
         await fulfillment(of: [expectation], timeout: 5)
     }
 
-    func testNextafterStarted() async {
+    func testNextAfterStarted() async {
         let stream = BidirectionalAsyncStream<Int, Int, NoneType> { continuation in
             await continuation.yield(1)
         }

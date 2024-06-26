@@ -15,73 +15,24 @@
 import Dispatch
 import Foundation
 
-@available(macOS 10.15, *)
-internal actor AsyncSemphore {
+/// An object that is similar to the `DispatchSemaphore` form the `Dispatch` package,
+/// but it is designed to be used in an asynchronous context.
+public actor AsyncSemaphore {
     // MARK: Lifecycle
 
     deinit {}
 
-    internal init(value: Int) {
+    /// Initializes a new instance of the semaphore with the specified initial value.
+    ///
+    /// - Parameter value: The initial value of the semaphore.
+    public init(value: Int) {
         self.value = value
     }
 
-    // MARK: Internal
+    // MARK: Public
 
-    internal func wait() async {
-        value -= 1
-        if value < 0 {
-            _ = await withCheckedContinuation { continuation in
-                let workItem = DispatchWorkItem { continuation.resume() }
-                self.worksAndIDs.append((workItem, UUID()))
-            }
-        }
-    }
-
-    internal func wait(timeout: DispatchTime) async -> DispatchTimeoutResult {
-        await withCheckedContinuation { continuation in
-            value -= 1
-            if value >= 0 {
-                continuation.resume(returning: .success)
-                return
-            }
-
-            let id = UUID()
-            let workItem = DispatchWorkItem { continuation.resume(returning: .success) }
-            self.worksAndIDs.append((workItem, id))
-
-            queue.asyncAfter(deadline: timeout) {
-                Task {
-                    if await self.removeWork(withID: id) {
-                        continuation.resume(returning: .timedOut)
-                    }
-                }
-            }
-        }
-    }
-
-    internal func wait(wallTimeout: DispatchWallTime) async -> DispatchTimeoutResult {
-        await withCheckedContinuation { continuation in
-            value -= 1
-            if value >= 0 {
-                continuation.resume(returning: .success)
-                return
-            }
-
-            let id = UUID()
-            let workItem = DispatchWorkItem { continuation.resume(returning: .success) }
-            self.worksAndIDs.append((workItem, id))
-
-            queue.asyncAfter(wallDeadline: wallTimeout) {
-                Task {
-                    if await self.removeWork(withID: id) {
-                        continuation.resume(returning: .timedOut)
-                    }
-                }
-            }
-        }
-    }
-
-    internal func signal() async {
+    /// Signals(increments) the semaphore, allowing one waiting task to resume execution.
+    public func signal() async {
         value += 1
         if let work = worksAndIDs.first {
             worksAndIDs.removeFirst()
@@ -89,13 +40,76 @@ internal actor AsyncSemphore {
         }
     }
 
+    /// Waits(decrements) the semaphore, blocking the current task if necessary.
+    public func wait() async {
+        value -= 1
+        if value < 0 {
+            await withCheckedContinuation { continuation in
+                let workItem = DispatchWorkItem { continuation.resume() }
+                worksAndIDs.append((workItem, UUID()))
+            }
+        }
+    }
+
+    /// Waits(decrements) the semaphore with a timeout, blocking the current task if necessary.
+    ///
+    /// - Parameter timeout: The timeout value.
+    /// - Returns: A `DispatchTimeoutResult` indicating whether the wait operation timed out or not.
+    public func wait(timeout: DispatchTime) async -> DispatchTimeoutResult {
+        await withCheckedContinuation { continuation in
+            value -= 1
+            if value >= 0 {
+                continuation.resume(returning: .success)
+                return
+            }
+
+            let id = UUID()
+            let workItem = DispatchWorkItem { continuation.resume(returning: .success) }
+            worksAndIDs.append((workItem, id))
+
+            queue.asyncAfter(deadline: timeout) {
+                Task {
+                    if await self.remove(work: id) {
+                        continuation.resume(returning: .timedOut)
+                    }
+                }
+            }
+        }
+    }
+
+    /// Waits(decrements) the semaphore with a wall timeout, blocking the current task if necessary.
+    ///
+    /// - Parameter wallTimeout: The wall timeout value.
+    /// - Returns: A `DispatchTimeoutResult` indicating whether the wait operation timed out or not.
+    public func wait(wallTimeout: DispatchWallTime) async -> DispatchTimeoutResult {
+        await withCheckedContinuation { continuation in
+            value -= 1
+            if value >= 0 {
+                continuation.resume(returning: .success)
+                return
+            }
+
+            let id = UUID()
+            let workItem = DispatchWorkItem { continuation.resume(returning: .success) }
+            worksAndIDs.append((workItem, id))
+
+            queue.asyncAfter(wallDeadline: wallTimeout) {
+                Task {
+                    if await self.remove(work: id) {
+                        continuation.resume(returning: .timedOut)
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: Private
 
     private var value: Int
-    private var queue = DispatchQueue(label: "com.AsyncDispatchSemphore.\(UUID().uuidString)")
-    private var worksAndIDs = [(work: DispatchWorkItem, id: UUID)]()
+    private let queue = DispatchQueue(label: "coom.BidirectionalStream.AsyncSemaphore.\(UUID().uuidString)")
+    private var worksAndIDs: [(work: DispatchWorkItem, id: UUID)] = []
 
-    private func removeWork(withID id: UUID) async -> Bool {
+    private func remove(work id: UUID) async -> Bool {
         if let index = worksAndIDs.firstIndex(where: { $0.id == id }) {
             worksAndIDs.remove(at: index)
             value += 1

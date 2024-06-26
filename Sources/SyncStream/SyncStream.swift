@@ -40,19 +40,19 @@ public class SyncStream<Element>: Sequence, IteratorProtocol {
     /// ```
     public init(_: Element.Type = Element.self, _ build: @escaping (SyncStream<Element>.Continuation) -> Void) {
         let getValueSemaphore = DispatchSemaphore(value: 0)
-        let runFuncitonSemaphore = DispatchSemaphore(value: 0)
+        let runFunctionSemaphore = DispatchSemaphore(value: 0)
         let continuation = SyncStream<Element>.Continuation(
             getValueSemaphore: getValueSemaphore,
-            runFuncitonSemaphore: runFuncitonSemaphore
+            runFunctionSemaphore: runFunctionSemaphore
         )
 
         self.getValueSemaphore = getValueSemaphore
-        runFunctionSemaphore = runFuncitonSemaphore
+        self.runFunctionSemaphore = runFunctionSemaphore
         self.continuation = continuation
 
         let queue = DispatchQueue(label: "com.SyncStream.\(UUID().uuidString)")
         queue.async {
-            runFuncitonSemaphore.wait()
+            runFunctionSemaphore.wait()
             build(continuation)
         }
     }

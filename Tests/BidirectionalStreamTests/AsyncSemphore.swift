@@ -12,19 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@testable import SyncStream
+@testable import BidirectionalStream
 import XCTest
 
-@available(macOS 10.15, *)
 final class AsyncDispatchSemaphoreTests: XCTestCase {
     func testSemaphoreInitialization() async {
-        let semaphore = AsyncSemphore(value: 1)
+        let semaphore = AsyncSemaphore(value: 1)
         await semaphore.signal() // Increase the semaphore to ensure it's initialized correctly.
         await semaphore.wait() // This should pass immediately if the semaphore was initialized with value 1.
     }
 
     func testSemaphoreWaitAndSignal() async {
-        let semaphore = AsyncSemphore(value: 0)
+        let semaphore = AsyncSemaphore(value: 0)
 
         let expectation = XCTestExpectation(description: "Semaphore signal")
 
@@ -39,7 +38,7 @@ final class AsyncDispatchSemaphoreTests: XCTestCase {
     }
 
     func testSemaphoreWaitWithTimeoutSuccess() async {
-        let semaphore = AsyncSemphore(value: 1)
+        let semaphore = AsyncSemaphore(value: 1)
 
         let start = Date()
         let result = await semaphore.wait(timeout: .now() + 0.5)
@@ -49,7 +48,7 @@ final class AsyncDispatchSemaphoreTests: XCTestCase {
     }
 
     func testSemaphoreWaitWithTimeoutBySignal() async {
-        let semaphore = AsyncSemphore(value: 0)
+        let semaphore = AsyncSemaphore(value: 0)
 
         let expectation = XCTestExpectation(description: "Semaphore signal")
 
@@ -65,7 +64,7 @@ final class AsyncDispatchSemaphoreTests: XCTestCase {
     }
 
     func testSemaphoreWaitWithTimeoutFailure() async {
-        let semaphore = AsyncSemphore(value: 0)
+        let semaphore = AsyncSemaphore(value: 0)
 
         let start = Date()
         let result = await semaphore.wait(timeout: .now() + 0.5)
@@ -74,8 +73,8 @@ final class AsyncDispatchSemaphoreTests: XCTestCase {
         XCTAssertTrue(end.timeIntervalSince(start) >= 0.5)
     }
 
-    func testSemphoreWaitWithWallTimeoutBySignal() async {
-        let semaphore = AsyncSemphore(value: 0)
+    func testSemaphoreWaitWithWallTimeoutBySignal() async {
+        let semaphore = AsyncSemaphore(value: 0)
 
         let expectation = XCTestExpectation(description: "Semaphore signal")
 
@@ -91,7 +90,7 @@ final class AsyncDispatchSemaphoreTests: XCTestCase {
     }
 
     func testSemaphoreWaitWithWallTimeoutSuccess() async {
-        let semaphore = AsyncSemphore(value: 1)
+        let semaphore = AsyncSemaphore(value: 1)
 
         let start = Date()
         let result = await semaphore.wait(wallTimeout: .now() + 0.5)
@@ -101,7 +100,7 @@ final class AsyncDispatchSemaphoreTests: XCTestCase {
     }
 
     func testSemaphoreWaitWithWallTimeoutFailure() async {
-        let semaphore = AsyncSemphore(value: 0)
+        let semaphore = AsyncSemaphore(value: 0)
 
         let start = Date()
         let result = await semaphore.wait(wallTimeout: .now() + 0.5)

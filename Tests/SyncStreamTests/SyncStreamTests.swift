@@ -159,7 +159,7 @@ final class SyncStreamTests: XCTestCase {
             continuation.yield(3)
             continuation.finish()
         }.dropFirst()
-        XCTAssertEqual(stream.prefix(2), [2, 3])
+        XCTAssertEqual(Array(stream.prefix(2)), [2, 3])
     }
 
     func testSyncStreamDropWhile() {
@@ -169,7 +169,7 @@ final class SyncStreamTests: XCTestCase {
             continuation.yield(3)
             continuation.finish()
         }.drop(while: { $0 < 2 })
-        XCTAssertEqual(stream.prefix(2), [2, 3])
+        XCTAssertEqual(Array(stream.prefix(2)), [2, 3])
     }
 
     func testSyncStreamFilter() {
@@ -179,7 +179,7 @@ final class SyncStreamTests: XCTestCase {
             continuation.yield(3)
             continuation.finish()
         }.filter { $0 % 2 != 0 }
-        XCTAssertEqual(stream.prefix(2), [1, 3])
+        XCTAssertEqual(Array(stream.prefix(2)), [1, 3])
     }
 
     func testSyncStreamMap() {
@@ -188,10 +188,10 @@ final class SyncStreamTests: XCTestCase {
             continuation.yield(2)
             continuation.finish()
         }.map { $0 * 2 }
-        XCTAssertEqual(stream.prefix(2), [2, 4])
+        XCTAssertEqual(Array(stream.prefix(2)), [2, 4])
     }
 
-    func testSyncStreamthrowingMap() throws {
+    func testSyncStreamThrowingMap() throws {
         enum TestError: Error {
             case test
         }
@@ -228,7 +228,7 @@ final class SyncStreamTests: XCTestCase {
             continuation.yield(3)
             continuation.finish()
         }.compactMap { $0 }
-        XCTAssertEqual(stream.prefix(2), [1, 3])
+        XCTAssertEqual(Array(stream.prefix(2)), [1, 3])
     }
 
     func testSyncStreamFlatMap() {
@@ -237,7 +237,7 @@ final class SyncStreamTests: XCTestCase {
             continuation.yield([3, 4])
             continuation.finish()
         }.flatMap { $0 }
-        XCTAssertEqual(stream.prefix(4), [1, 2, 3, 4])
+        XCTAssertEqual(Array(stream.prefix(4)), [1, 2, 3, 4])
     }
 
     func testSyncStreamReduce() {
@@ -262,17 +262,17 @@ final class SyncStreamTests: XCTestCase {
         XCTAssertEqual(sum, 6)
     }
 
-    func testSyncStreamFrefix() {
+    func testSyncStreamPrefix() {
         let stream = SyncStream<Int> { continuation in
             continuation.yield(1)
             continuation.yield(2)
             continuation.yield(3)
             continuation.finish()
         }
-        XCTAssertEqual(stream.prefix(2), [1, 2])
+        XCTAssertEqual(Array(stream.prefix(2)), [1, 2])
     }
 
-    func testSyncStreamFrefixWithClousure() {
+    func testSyncStreamPrefixWithClosure() {
         let stream = SyncStream<Int> { continuation in
             continuation.yield(1)
             continuation.yield(2)
