@@ -1,13 +1,20 @@
-# `StreamUtilities`
+# ``StreamUtilities``
 
 `StreamUtilities` is a toolbox providing two utilities for working with stream in swift:
+
+## Overview
 
 + `SyncStream`: a class that generates a sequence of values, inspired by `AsyncStream` from the swift standard library, but operates synchronously.
 + `BidirectionalStream`: aims to bring features similar to Python's Generator to Swift. Users can generate values using `yield`, send values back with `send`, and close the stream by throwing a `StopIteration` error.
 
-## Overview
+## Documentation
 
-### `SyncStream`
++ [SyncStream](./SyncStream)
++ [BidirectionalStream](./BidirectionalStream)
+
+## Getting Started
+
+### SyncStream
 
 [`AsyncStream`](https://developer.apple.com/documentation/swift/asyncstream) offers a convenient method to create a sequence from a closure that invokes a continuation to generate elements. However, in certain cases, you may need to produce a sequence synchronously using a closure. To address this need, we introduce [`SyncStream`](syncstream/syncstream), which shares the same API as `AsyncStream` but operates synchronously.
 
@@ -27,9 +34,9 @@ for value in stream {
 // 0 1 2 3 4 5 6 7 8 9
 ```
 
-### `BidirectionalStream`
+### BidirectionalStream
 
-Inspired by Python generators, which not only can use `yield` to produce values, but also can use `send` to receive values, and `return` to raise a `StopIteration` error and halt the stream, the ``BidirectionalSyncStream`` and ``BidirectionalAsyncStream``  in Swift offer similar features for synchronous and asynchronous operations respectively.
+Inspired by Python generators, which not only can use `yield` to produce values, but also can use `send` to receive values, and `return` to raise a `StopIteration` error and halt the stream, the `BidirectionalSyncStream` and `BidirectionalAsyncStream`  in Swift offer similar features for synchronous and asynchronous operations respectively.
 
 For more information about the generator in python, See: [PEP 255](https://peps.python.org/pep-0255/), [PEP 342](https://peps.python.org/pep-0342/#new-generator-method-send-value), [Doc](https://docs.python.org/3/reference/expressions.html#generator-iterator-methods)
 

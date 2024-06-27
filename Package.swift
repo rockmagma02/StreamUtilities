@@ -4,7 +4,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "SyncStream",
+    name: "StreamUtilities",
     platforms: [
         .macOS(.v13),
         .iOS(.v16),
@@ -16,8 +16,8 @@ let package = Package(
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "StreamUtils",
-            targets: ["SyncStream", "BidirectionalStream"]
+            name: "StreamUtilities",
+            targets: ["StreamUtilities", "SyncStream", "BidirectionalStream"]
         ),
     ],
     dependencies: [
@@ -27,7 +27,12 @@ let package = Package(
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "SyncStream"),
+            name: "StreamUtilities",
+            dependencies: ["SyncStream", "BidirectionalStream"]
+        ),
+        .target(
+            name: "SyncStream"
+        ),
         .target(
             name: "BidirectionalStream",
             dependencies: ["SyncStream"]
