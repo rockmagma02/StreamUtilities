@@ -5,7 +5,8 @@ SOURCE_FOLDERS = Sources Tests
 SHELL          = /bin/bash
 
 HOME		   = $(shell echo $$HOME)
-SWIFT_VERSION  = 5.10
+SWIFT_VERSION  = system
+SWIFT_TRUE_VERSION = 5.10
 
 
 # Swift Installation
@@ -18,7 +19,6 @@ install-swiftenv:
 install-Swift:
 	if command -v swiftenv >/dev/null; then \
 		swiftenv install $(SWIFT_VERSION); \
-		swiftenv local $(SWIFT_VERSION); \
 	else \
 		echo "swiftenv not found"; \
 		echo "install swiftenv by brew first"; \
@@ -31,19 +31,22 @@ install-Swift:
 			make install-swiftenv; \
 		fi; \
 		swiftenv install $(SWIFT_VERSION); \
-		swiftenv local $(SWIFT_VERSION); \
 	fi
 
 # Init Swift Environment
 init-swift:
-	swiftenv install $(SWIFT_VERSION)
-	swiftenv local $(SWIFT_VERSION)
+	if command -v swiftenv >/dev/null; then \
+		swiftenv local $(SWIFT_VERSION); \
+	else \
+		make install-Swift; \
+		make init-swift; \
+	fi
 
 # Build
-build:
+build: init-swift
 	swift build
 
-build-verbose:
+build-verbose: init-swift
 	swift build --vv
 
 # Test
@@ -51,12 +54,26 @@ test: build
 	swift test
 
 # Clean
-clean:
+clean: init-swift
 	swift package clean
 
 clean-dist:
 	rm -rf .build
 	make clean
+
+# Documentation
+
+doc: init-swift
+	swift package --allow-writing-to-directory ./Documentation-StreamUtilities generate-documentation --target StreamUtilities --output-path ./Documentation-StreamUtilities --transform-for-static-hosting
+	swift package --allow-writing-to-directory ./Documentation-SyncStream generate-documentation --target SyncStream --output-path ./Documentation-SyncStream --transform-for-static-hosting
+	swift package --allow-writing-to-directory ./Documentation-BidirectionalStream generate-documentation --target BidirectionalStream --output-path ./Documentation-BidirectionalStream --transform-for-static-hosting
+	mkdir Documentation
+	cp -r Documentation-StreamUtilities/* Documentation
+	cp -r Documentation-SyncStream/* Documentation
+	cp -r Documentation-BidirectionalStream/* Documentation
+	rm -rf Documentation-StreamUtilities
+	rm -rf Documentation-SyncStream
+	rm -rf Documentation-BidirectionalStream
 
 # Tools Installation
 pre-commit-install:
