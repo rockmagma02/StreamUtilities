@@ -64,16 +64,7 @@ clean-dist:
 # Documentation
 
 doc: init-swift
-	swift package --allow-writing-to-directory ./Documentation-StreamUtilities generate-documentation --target StreamUtilities --output-path ./Documentation-StreamUtilities --transform-for-static-hosting
-	swift package --allow-writing-to-directory ./Documentation-SyncStream generate-documentation --target SyncStream --output-path ./Documentation-SyncStream --transform-for-static-hosting
-	swift package --allow-writing-to-directory ./Documentation-BidirectionalStream generate-documentation --target BidirectionalStream --output-path ./Documentation-BidirectionalStream --transform-for-static-hosting
-	mkdir Documentation
-	cp -r Documentation-StreamUtilities/* Documentation
-	cp -r Documentation-SyncStream/* Documentation
-	cp -r Documentation-BidirectionalStream/* Documentation
-	rm -rf Documentation-StreamUtilities
-	rm -rf Documentation-SyncStream
-	rm -rf Documentation-BidirectionalStream
+	swift package --allow-writing-to-directory ./Documentation generate-documentation-multitarget --main-target $(PROJECT_NAME) --target SyncStream --target BidirectionalStream --output ./Documentation
 
 # Tools Installation
 pre-commit-install:

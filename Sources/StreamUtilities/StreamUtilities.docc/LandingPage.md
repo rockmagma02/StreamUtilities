@@ -9,8 +9,8 @@
 
 ## Documentation
 
-+ [SyncStream](./SyncStream)
-+ [BidirectionalStream](./BidirectionalStream)
++ [SyncStream](../syncstream)
++ [BidirectionalStream](../bidirectionalstream)
 
 ## Getting Started
 
